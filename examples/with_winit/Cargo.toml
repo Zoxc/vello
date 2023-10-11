@@ -27,8 +27,10 @@ clap = { workspace = true, features = ["derive"] }
 instant = { workspace = true }
 pollster = { workspace = true }
 wgpu-profiler = { workspace = true }
-
 wgpu = { workspace = true }
+puffin = { version = "0.17.0" }
+puffin_egui = { version = "0.23.0" }
+eframe = { version = "0.23.0" }
 winit = "0.28.1"
 env_logger = "0.10.0"
 log = "0.4.17"
@@ -46,5 +48,5 @@ android_logger = "0.13.0"
 console_error_panic_hook = "0.1.7"
 console_log = "1"
 wasm-bindgen-futures = "0.4.33"
-web-sys = { version = "0.3.60", features = [ "HtmlCollection", "Text" ] }
+web-sys = { version = "0.3.60", features = ["HtmlCollection", "Text"] }
 getrandom = { version = "0.2.10", features = ["js"] }

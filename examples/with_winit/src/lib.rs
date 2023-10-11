@@ -314,6 +314,7 @@ fn run(
             }
         }
         Event::RedrawRequested(_) => {
+            puffin::GlobalProfiler::lock().new_frame();
             let Some(render_state) = &mut render_state else {
                 return;
             };
@@ -548,6 +549,48 @@ fn display_error_message() -> Option<()> {
     Some(())
 }
 
+use eframe::egui;
+
+fn profiler_window() {
+    std::thread::Builder::new()
+        .name("vello_cpu_profiler".to_string())
+        .spawn(|| {
+            std::thread::sleep_ms(30 * 1000);
+            let mut native_options: eframe::NativeOptions = Default::default();
+            native_options.event_loop_builder = Some(Box::new(|builder| {
+                winit::platform::windows::EventLoopBuilderExtWindows::with_any_thread(
+                    builder, true,
+                );
+            }));
+            eframe::run_native(
+                "Vello CPU Profiler",
+                native_options,
+                Box::new(|_cc| Box::new(Profiler)),
+            )
+            .unwrap();
+        })
+        .ok();
+}
+
+pub struct Profiler;
+
+impl eframe::App for Profiler {
+    fn update(&mut self, ctx: &egui::Context, _: &mut eframe::Frame) {
+        egui::CentralPanel::default().show(ctx, |ui| {
+            /*let ctx = ctx.clone();
+            static SETUP_NOTIFIER: Once = Once::new();
+            SETUP_NOTIFIER.call_once(move || {
+                puffin::GlobalProfiler::lock().add_sink(Box::new(move |_| {
+                    //println!("new");
+                    ctx.request_repaint()
+                }));
+            });*/
+
+            puffin::ThreadProfiler::disable(|| puffin_egui::profiler_ui(ui))
+        });
+    }
+}
+
 pub fn main() -> Result<()> {
     // TODO: initializing both env_logger and console_logger fails on wasm.
     // Figure out a more principled approach.
@@ -556,7 +599,11 @@ pub fn main() -> Result<()> {
     let args = Args::parse();
     let scenes = args.args.select_scene_set(Args::command)?;
     if let Some(scenes) = scenes {
+        puffin::set_scopes_on(true);
+        //profiler_window();
+
         let event_loop = EventLoopBuilder::<UserEvent>::with_user_event().build();
+
         #[allow(unused_mut)]
         let mut render_cx = RenderContext::new().unwrap();
         #[cfg(not(target_arch = "wasm32"))]
