@@ -79,6 +79,7 @@ pub struct FullShaders {
     pub path_tiling_setup: ShaderId,
     pub path_tiling: ShaderId,
     pub fine: ShaderId,
+    pub writeback: ShaderId,
     // 2-level dispatch works for CPU pathtag scan even for large
     // inputs, 3-level is not yet implemented.
     pub pathtag_is_cpu: bool,
@@ -339,7 +340,7 @@ pub fn full_shaders(device: &Device, engine: &mut WgpuEngine) -> Result<FullShad
                 BindType::ImageRead(ImageFormat::Rgba8),
                 BindType::ImageRead(ImageFormat::Rgba8),
             ],
-            CpuShaderType::Missing,
+            CpuShaderType::Present(cpu_shader::fine),
         )?,
         _ => {
             engine.add_shader(
@@ -360,6 +361,17 @@ pub fn full_shaders(device: &Device, engine: &mut WgpuEngine) -> Result<FullShad
             )?
         }
     };
+    let writeback = engine.add_shader(
+        device,
+        "writeback",
+        preprocess::preprocess(shader!("writeback"), &empty, &imports).into(),
+        &[
+            BindType::Uniform,
+            BindType::BufReadOnly,
+            BindType::Image(ImageFormat::Rgba8),
+        ],
+        CpuShaderType::Missing,
+    )?;
     Ok(FullShaders {
         pathtag_reduce,
         pathtag_reduce2,
@@ -381,6 +393,7 @@ pub fn full_shaders(device: &Device, engine: &mut WgpuEngine) -> Result<FullShad
         path_tiling_setup,
         path_tiling,
         fine,
+        writeback,
         pathtag_is_cpu: engine.use_cpu,
     })
 }

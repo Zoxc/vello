@@ -46,6 +46,7 @@ pub use engine::{
     BufProxy, Command, Id, ImageFormat, ImageProxy, Recording, ResourceProxy, ShaderId,
 };
 pub use shaders::FullShaders;
+use wgpu_engine::TransientBindMap;
 #[cfg(feature = "wgpu")]
 use wgpu_engine::{ExternalResource, WgpuEngine};
 
@@ -146,20 +147,21 @@ impl Renderer {
         device: &Device,
         queue: &Queue,
         scene: &Scene,
-        texture: &TextureView,
+        texture_view: &TextureView,
         params: &RenderParams,
     ) -> Result<()> {
         let (recording, target) = render::render_full(scene, &self.shaders, params);
         let external_resources = [ExternalResource::Image(
             *target.as_image().unwrap(),
-            texture,
+            texture_view,
         )];
+        let mut transient_map = TransientBindMap::new(&external_resources);
         self.engine.run_recording(
             device,
             queue,
             &recording,
-            &external_resources,
             "render_to_texture",
+            &mut transient_map,
             #[cfg(feature = "wgpu-profiler")]
             &mut self.profiler,
         )?;
@@ -264,7 +266,7 @@ impl Renderer {
         device: &Device,
         queue: &Queue,
         scene: &Scene,
-        texture: &TextureView,
+        texture_view: &TextureView,
         params: &RenderParams,
     ) -> Result<Option<BumpAllocators>> {
         let mut render = Render::new();
@@ -274,12 +276,14 @@ impl Renderer {
         let recording = render.render_encoding_coarse(encoding, &self.shaders, params, robust);
         let target = render.out_image();
         let bump_buf = render.bump_buf();
+        let external_resources = [ExternalResource::Image(target, texture_view)];
+        let mut transient_map = TransientBindMap::new(&external_resources);
         self.engine.run_recording(
             device,
             queue,
             &recording,
-            &[],
             "t_async_coarse",
+            &mut transient_map,
             #[cfg(feature = "wgpu-profiler")]
             &mut self.profiler,
         )?;
@@ -303,13 +307,12 @@ impl Renderer {
         // Maybe clear to reuse allocation?
         let mut recording = Recording::default();
         render.record_fine(&self.shaders, &mut recording);
-        let external_resources = [ExternalResource::Image(target, texture)];
         self.engine.run_recording(
             device,
             queue,
             &recording,
-            &external_resources,
             "t_async_fine",
+            &mut transient_map,
             #[cfg(feature = "wgpu-profiler")]
             &mut self.profiler,
         )?;
