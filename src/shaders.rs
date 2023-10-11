@@ -86,6 +86,7 @@ pub struct FullShaders {
 
 #[cfg(feature = "wgpu")]
 pub fn full_shaders(device: &Device, engine: &mut WgpuEngine) -> Result<FullShaders, Error> {
+    use crate::wgpu_engine::CpuShaderType;
     use crate::ANTIALIASING;
 
     let imports = SHARED_SHADERS
@@ -114,12 +115,14 @@ pub fn full_shaders(device: &Device, engine: &mut WgpuEngine) -> Result<FullShad
         "pathtag_reduce",
         preprocess::preprocess(shader!("pathtag_reduce"), &full_config, &imports).into(),
         &[BindType::Uniform, BindType::BufReadOnly, BindType::Buffer],
+        CpuShaderType::Present(cpu_shader::pathtag_reduce),
     )?;
     let pathtag_reduce2 = engine.add_shader(
         device,
         "pathtag_reduce2",
         preprocess::preprocess(shader!("pathtag_reduce2"), &full_config, &imports).into(),
         &[BindType::BufReadOnly, BindType::Buffer],
+        CpuShaderType::Ununsed,
     )?;
     let pathtag_scan1 = engine.add_shader(
         device,
@@ -130,6 +133,7 @@ pub fn full_shaders(device: &Device, engine: &mut WgpuEngine) -> Result<FullShad
             BindType::BufReadOnly,
             BindType::Buffer,
         ],
+        CpuShaderType::Ununsed,
     )?;
     let pathtag_scan = engine.add_shader(
         device,
@@ -141,6 +145,7 @@ pub fn full_shaders(device: &Device, engine: &mut WgpuEngine) -> Result<FullShad
             BindType::BufReadOnly,
             BindType::Buffer,
         ],
+        CpuShaderType::Present(cpu_shader::pathtag_scan),
     )?;
     let pathtag_scan_large = engine.add_shader(
         device,
@@ -152,12 +157,14 @@ pub fn full_shaders(device: &Device, engine: &mut WgpuEngine) -> Result<FullShad
             BindType::BufReadOnly,
             BindType::Buffer,
         ],
+        CpuShaderType::Ununsed,
     )?;
     let bbox_clear = engine.add_shader(
         device,
         "bbox_clear",
         preprocess::preprocess(shader!("bbox_clear"), &empty, &imports).into(),
         &[BindType::Uniform, BindType::Buffer],
+        CpuShaderType::Present(cpu_shader::bbox_clear),
     )?;
     let flatten = engine.add_shader(
         device,
@@ -171,12 +178,14 @@ pub fn full_shaders(device: &Device, engine: &mut WgpuEngine) -> Result<FullShad
             BindType::Buffer,
             BindType::Buffer,
         ],
+        CpuShaderType::Present(cpu_shader::flatten),
     )?;
     let draw_reduce = engine.add_shader(
         device,
         "draw_reduce",
         preprocess::preprocess(shader!("draw_reduce"), &empty, &imports).into(),
         &[BindType::Uniform, BindType::BufReadOnly, BindType::Buffer],
+        CpuShaderType::Present(cpu_shader::draw_reduce),
     )?;
     let draw_leaf = engine.add_shader(
         device,
@@ -191,6 +200,7 @@ pub fn full_shaders(device: &Device, engine: &mut WgpuEngine) -> Result<FullShad
             BindType::Buffer,
             BindType::Buffer,
         ],
+        CpuShaderType::Present(cpu_shader::draw_leaf),
     )?;
     let clip_reduce = engine.add_shader(
         device,
@@ -202,6 +212,7 @@ pub fn full_shaders(device: &Device, engine: &mut WgpuEngine) -> Result<FullShad
             BindType::Buffer,
             BindType::Buffer,
         ],
+        CpuShaderType::Present(cpu_shader::clip_reduce),
     )?;
     let clip_leaf = engine.add_shader(
         device,
@@ -216,6 +227,7 @@ pub fn full_shaders(device: &Device, engine: &mut WgpuEngine) -> Result<FullShad
             BindType::Buffer,
             BindType::Buffer,
         ],
+        CpuShaderType::Present(cpu_shader::clip_leaf),
     )?;
     let binning = engine.add_shader(
         device,
@@ -231,6 +243,7 @@ pub fn full_shaders(device: &Device, engine: &mut WgpuEngine) -> Result<FullShad
             BindType::Buffer,
             BindType::Buffer,
         ],
+        CpuShaderType::Present(cpu_shader::binning),
     )?;
     let tile_alloc = engine.add_shader(
         device,
@@ -244,12 +257,14 @@ pub fn full_shaders(device: &Device, engine: &mut WgpuEngine) -> Result<FullShad
             BindType::Buffer,
             BindType::Buffer,
         ],
+        CpuShaderType::Present(cpu_shader::tile_alloc),
     )?;
     let path_count_setup = engine.add_shader(
         device,
         "path_count_setup",
         preprocess::preprocess(shader!("path_count_setup"), &empty, &imports).into(),
         &[BindType::BufReadOnly, BindType::Buffer],
+        CpuShaderType::Present(cpu_shader::path_count_setup),
     )?;
     let path_count = engine.add_shader(
         device,
@@ -263,12 +278,14 @@ pub fn full_shaders(device: &Device, engine: &mut WgpuEngine) -> Result<FullShad
             BindType::Buffer,
             BindType::Buffer,
         ],
+        CpuShaderType::Present(cpu_shader::path_count),
     )?;
     let backdrop = engine.add_shader(
         device,
         "backdrop_dyn",
         preprocess::preprocess(shader!("backdrop_dyn"), &empty, &imports).into(),
         &[BindType::Uniform, BindType::BufReadOnly, BindType::Buffer],
+        CpuShaderType::Present(cpu_shader::backdrop),
     )?;
     let coarse = engine.add_shader(
         device,
@@ -285,12 +302,14 @@ pub fn full_shaders(device: &Device, engine: &mut WgpuEngine) -> Result<FullShad
             BindType::Buffer,
             BindType::Buffer,
         ],
+        CpuShaderType::Present(cpu_shader::coarse),
     )?;
     let path_tiling_setup = engine.add_shader(
         device,
         "path_tiling_setup",
         preprocess::preprocess(shader!("path_tiling_setup"), &empty, &imports).into(),
         &[BindType::BufReadOnly, BindType::Buffer],
+        CpuShaderType::Present(cpu_shader::path_tiling_setup),
     )?;
     let path_tiling = engine.add_shader(
         device,
@@ -304,6 +323,7 @@ pub fn full_shaders(device: &Device, engine: &mut WgpuEngine) -> Result<FullShad
             BindType::BufReadOnly,
             BindType::Buffer,
         ],
+        CpuShaderType::Present(cpu_shader::path_tiling),
     )?;
     let fine = match ANTIALIASING {
         crate::AaConfig::Area => engine.add_shader(
@@ -319,6 +339,7 @@ pub fn full_shaders(device: &Device, engine: &mut WgpuEngine) -> Result<FullShad
                 BindType::ImageRead(ImageFormat::Rgba8),
                 BindType::ImageRead(ImageFormat::Rgba8),
             ],
+            CpuShaderType::Missing,
         )?,
         _ => {
             engine.add_shader(
@@ -335,6 +356,7 @@ pub fn full_shaders(device: &Device, engine: &mut WgpuEngine) -> Result<FullShad
                     BindType::ImageRead(ImageFormat::Rgba8),
                     BindType::BufReadOnly, // mask buffer
                 ],
+                CpuShaderType::Missing,
             )?
         }
     };
@@ -359,40 +381,8 @@ pub fn full_shaders(device: &Device, engine: &mut WgpuEngine) -> Result<FullShad
         path_tiling_setup,
         path_tiling,
         fine,
-        pathtag_is_cpu: false,
+        pathtag_is_cpu: engine.use_cpu,
     })
-}
-
-#[cfg(feature = "wgpu")]
-impl FullShaders {
-    /// Install the CPU shaders.
-    ///
-    /// There are a couple things to note here. The granularity provided by
-    /// this method is coarse; it installs all the shaders. There are many
-    /// use cases (including debugging), where a mix is desired, or the
-    /// choice between GPU and CPU dispatch might be dynamic.
-    ///
-    /// Second, the actual mapping to CPU shaders is not really specific to
-    /// the engine, and should be split out into a back-end agnostic struct.
-    pub fn install_cpu_shaders(&mut self, engine: &mut WgpuEngine) {
-        engine.set_cpu_shader(self.pathtag_reduce, cpu_shader::pathtag_reduce);
-        engine.set_cpu_shader(self.pathtag_scan, cpu_shader::pathtag_scan);
-        engine.set_cpu_shader(self.bbox_clear, cpu_shader::bbox_clear);
-        engine.set_cpu_shader(self.flatten, cpu_shader::flatten);
-        engine.set_cpu_shader(self.draw_reduce, cpu_shader::draw_reduce);
-        engine.set_cpu_shader(self.draw_leaf, cpu_shader::draw_leaf);
-        engine.set_cpu_shader(self.clip_reduce, cpu_shader::clip_reduce);
-        engine.set_cpu_shader(self.clip_leaf, cpu_shader::clip_leaf);
-        engine.set_cpu_shader(self.binning, cpu_shader::binning);
-        engine.set_cpu_shader(self.tile_alloc, cpu_shader::tile_alloc);
-        engine.set_cpu_shader(self.path_count_setup, cpu_shader::path_count_setup);
-        engine.set_cpu_shader(self.path_count, cpu_shader::path_count);
-        engine.set_cpu_shader(self.backdrop, cpu_shader::backdrop);
-        engine.set_cpu_shader(self.coarse, cpu_shader::coarse);
-        engine.set_cpu_shader(self.path_tiling_setup, cpu_shader::path_tiling_setup);
-        engine.set_cpu_shader(self.path_tiling, cpu_shader::path_tiling);
-        self.pathtag_is_cpu = true;
-    }
 }
 
 macro_rules! shared_shader {
